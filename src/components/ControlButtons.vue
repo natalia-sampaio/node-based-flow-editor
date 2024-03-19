@@ -5,8 +5,11 @@ import IconTrash from './icons/IconTrash.vue';
 
 defineProps<{
     showDelete: boolean;
-    onClickAdd: (numberInputs: number, numberOutputs: number) => void;
-    onClickDelete: () => void;
+}>();
+
+const emit = defineEmits<{
+    (e: 'onClickAdd', numberInputs: number, numberOutputs: number): void;
+    (e: 'onClickDelete'): void;
 }>();
 
 const isOpen = ref(false);
@@ -27,6 +30,7 @@ function handleOnClickAddNode() {
         return;
 
     isOpen.value = false;
+    emit('onClickAdd', numberInputs.value, numberOutputs.value);
 }
 
 function handleChangeNumberInputs(event: any) {
@@ -42,31 +46,29 @@ function handleChangeNumberOutputs(event: any) {
         <div class="wrapper">
             <button
                 :class="showDelete ? 'buttonDelete' : 'buttonDeleteHidden'"
-                @click="onClickDelete"
+                @click="$emit('onClickDelete')"
             >
                 <IconTrash class="buttonIcon" />
             </button>
             <button class="buttonAdd" @click.stop="handleOnClickAdd">
                 <IconAdd class="buttonIcon" />
             </button>
-            <div>
-                <div :class="isOpen ? 'dropDown' : 'dropDownHidden'">
-                    <label class="label">Number of inputs</label>
-                    <input
-                        type="number"
-                        class="input"
-                        :value="numberInputs"
-                        @input="handleChangeNumberInputs"
-                    />
-                    <label class="label">Number of outputs</label>
-                    <input
-                        type="number"
-                        class="input"
-                        :value="numberOutputs"
-                        @input="handleChangeNumberOutputs"
-                    />
-                    <button class="buttonRect" @click.stop="handleOnClickAddNode">Add node</button>
-                </div>
+            <div :class="isOpen ? 'dropdown' : 'dropdownHidden'">
+                <label class="label">Number of inputs</label>
+                <input
+                    type="number"
+                    class="input"
+                    :value="numberInputs"
+                    @input="handleChangeNumberInputs"
+                />
+                <label class="label">Number of outputs</label>
+                <input
+                    type="number"
+                    class="input"
+                    :value="numberOutputs"
+                    @input="handleChangeNumberOutputs"
+                />
+                <button class="buttonRect" @click.stop="handleOnClickAddNode">Add node</button>
             </div>
         </div>
     </div>

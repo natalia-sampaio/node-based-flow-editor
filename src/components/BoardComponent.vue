@@ -62,7 +62,9 @@ onMounted(() => {
     }
 });
 
-function handleOnClickAdd(numberInputs: number, numberOutputs: number) {}
+function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
+    console.log(numberInputs, numberOutputs);
+}
 
 function handleOnClickDelete() {}
 </script>
@@ -71,8 +73,8 @@ function handleOnClickDelete() {}
     <div id="boardWrapper" class="wrapper">
         <ControlButtons
             :showDelete="selectedNode !== null"
-            :onClickAdd="handleOnClickAdd"
-            :onClickDelete="handleOnClickDelete"
+            @on-click-add="handleOnClickAdd"
+            @on-click-delete="handleOnClickDelete"
         />
 
         <div
