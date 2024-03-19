@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import type { Ref } from 'vue';
 import ControlButtons from './ControlButtons.vue';
+import NodeComponent from './NodeComponent.vue';
 
 const grabbingBoard = ref(false);
 const scale = ref(1);
@@ -62,11 +64,42 @@ onMounted(() => {
     }
 });
 
+interface Node {
+    id: Ref<string>;
+    inputs: Ref<number>;
+    outputs: Ref<number>;
+    previousPosition: Ref<{ x: number; y: number }>;
+    currentPosition: Ref<{ x: number; y: number }>;
+}
+
+const nodes = ref<Node[]>([]);
+
 function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
-    console.log(numberInputs, numberOutputs);
+    const randomX = Math.random() * window.innerWidth;
+    const randomY = Math.random() * window.innerHeight;
+
+    const nodePrevious = { x: randomX, y: randomY };
+    const nodeCurrent = { x: randomX, y: randomY };
+
+    const nodeId = `node_${Math.random().toString(36).substring(2, 8)}`;
+
+    nodes.value.push({
+        id: nodeId,
+        inputs: numberInputs,
+        outputs: numberOutputs,
+        previousPosition: nodePrevious,
+        currentPosition: nodeCurrent
+    });
 }
 
 function handleOnClickDelete() {}
+
+function handleMouseDownNode() {}
+
+function handleMouseDownOutput() {}
+
+function handleMouseOverInput() {}
+function handleMouseLeaveInput() {}
 </script>
 
 <template>
@@ -83,7 +116,22 @@ function handleOnClickDelete() {}
             @mouseup="handleMouseUp"
             @mousemove="handleMouseMove"
             :class="grabbingBoard ? 'boardDragging' : 'board'"
-        ></div>
+        >
+            <div v-for="node in nodes" :key="node.id">
+                <NodeComponent
+                    :id="node.id"
+                    :x="node.currentPosition.x"
+                    :y="node.currentPosition.y"
+                    :numberInputs="node.inputs"
+                    :numberOutputs="node.outputs"
+                    :selected="selectedNode === node.id"
+                    :onMouseDownNode="handleMouseDownNode"
+                    :onMouseDownOutput="handleMouseDownOutput"
+                    :onMouseOverInput="handleMouseOverInput"
+                    :onMouseLeaveInput="handleMouseLeaveInput"
+                />
+            </div>
+        </div>
     </div>
 </template>
 
