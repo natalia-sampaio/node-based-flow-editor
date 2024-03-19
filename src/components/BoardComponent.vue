@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import ControlButtons from './ControlButtons.vue';
 
 const grabbingBoard = ref(false);
 const scale = ref(1);
 const clickedPosition = ref({ x: -1, y: -1 });
+const selectedNode = ref<String | null>(null);
 
 function handleMouseDown(event: any) {
     //Start grabbing board
@@ -59,10 +61,20 @@ onMounted(() => {
         );
     }
 });
+
+function handleOnClickAdd(numberInputs: number, numberOutputs: number) {}
+
+function handleOnClickDelete() {}
 </script>
 
 <template>
     <div id="boardWrapper" class="wrapper">
+        <ControlButtons
+            :showDelete="selectedNode !== null"
+            :onClickAdd="handleOnClickAdd"
+            :onClickDelete="handleOnClickDelete"
+        />
+
         <div
             id="board"
             @mousedown="handleMouseDown"
@@ -77,7 +89,7 @@ onMounted(() => {
 .wrapper {
     position: fixed;
     width: 100vw;
-    height: 100vw;
+    height: 100vh;
     top: 0px;
     left: 0px;
     overflow: scroll;
@@ -95,7 +107,7 @@ onMounted(() => {
 .boardDragging {
     position: relative;
     width: 100vw;
-    height: 100vw;
+    height: 100vh;
     background-size: 30px 30px;
     background-image: radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px);
     cursor: grabbing;
