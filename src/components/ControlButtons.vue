@@ -34,11 +34,11 @@ function handleOnClickAddNode() {
 }
 
 function handleChangeNumberInputs(event: any) {
-    numberInputs.value = event.target.value;
+    numberInputs.value = Number(event.target.value);
 }
 
 function handleChangeNumberOutputs(event: any) {
-    numberOutputs.value = event.target.value;
+    numberOutputs.value = Number(event.target.value);
 }
 </script>
 <template>

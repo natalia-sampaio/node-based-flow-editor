@@ -8,48 +8,42 @@ defineProps<{
     numberInputs: number;
     numberOutputs: number;
     selected: boolean;
-    onMouseDownOutput: (
-        outputPositionX: number,
-        outputPositionY: number,
-        nodeId: string,
-        outputIndex: number
-    ) => void;
-    onMouseOverInput: (
-        inputPositionX: number,
-        inputPositionY: number,
-        nodeId: string,
-        inputIndex: number
-    ) => void;
-    onMouseLeaveInput: (nodeId?: string, inputIndex: number) => void;
 }>();
 
 const emit = defineEmits<{
     (e: 'onMouseDownNode', id: string, event: any): void;
+    (
+        e: 'onMouseOverInput',
+        inputPositionX: number,
+        inputPositionY: number,
+        nodeId: string,
+        inputIndex: number
+    ): void;
+    (e: 'onMouseLeaveInput', nodeId: string, inputIndex: number): void;
+    (
+        e: 'onMouseDownOutput',
+        outputPositionX: number,
+        outputPositionY: number,
+        nodeId: string,
+        outputIndex: number
+    ): void;
 }>();
 
-const inputs = Array(Number(numberInputs)).keys();
-const outputs = Array(Number(numberOutputs)).keys();
-
-function handleMouseOverInput(ref: any, inputIndex: number) {
+function handleMouseOverInput(ref: any, inputIndex: number, id: string) {
     const centerX =
         ref.getBoundingClientRect().left +
         Math.abs(ref.getBoundingClientRect().right - ref.getBoundingClientRect().left) / 2;
     const centerY =
         ref.getBoundingClientRect().top +
         Math.abs(ref.getBoundingClientRect().bottom - ref.getBoundingClientRect().top) / 2;
-
-    onMouseOverInput.inputPositionX = centerX;
-    onMouseOverInput.inputPositionY = centerY;
-    onMouseOverInput.nodeId = id;
-    onMouseOverInput.inputIndex = inputIndex;
+    emit('onMouseOverInput', centerX, centerY, id, inputIndex);
 }
 
-function handleMouseLeaveInput(inputIndex: number) {
-    onMouseLeaveInput.nodeId = id;
-    onMouseLeaveInput.inputIndex = inputIndex;
+function handleMouseLeaveInput(inputIndex: number, id: string) {
+    emit('onMouseLeaveInput', id, inputIndex);
 }
 
-function handleMouseDownOutput(ref: any, event: any, outputIndex: number) {
+function handleMouseDownOutput(ref: any, event: any, outputIndex: number, id: string) {
     event.stopPropagation();
 
     const centerX =
@@ -58,32 +52,35 @@ function handleMouseDownOutput(ref: any, event: any, outputIndex: number) {
     const centerY =
         ref.getBoundingClientRect().top +
         Math.abs(ref.getBoundingClientRect().bottom - ref.getBoundingClientRect().top) / 2;
-
-    onMouseDownOutput.outputPositionX = centerX;
-    onMouseDownOutput.outputPositionX = centerY;
-    onMouseDownOutput.nodeId = id;
-    onMouseDownOutput.outputIndex = outputIndex;
+    emit('onMouseOverInput', centerX, centerY, id, outputIndex);
 }
+
+const inputRef = ref<number>(0);
+const outputRef = ref<number>(0);
 </script>
 <template>
     <div
         :class="selected ? 'nodeSelected' : 'node'"
         :style="{ transform: `translate(${x}px, ${y}px)` }"
-        @mousedown.stop="emit('onMouseDownNode', id, event)"
+        @mousedown.stop="emit('onMouseDownNode', id, $event)"
     >
-        <div class="inputsWrapper" v-for="input in inputs" :key="input.id">
+        <div class="inputsWrapper">
             <div
+                v-for="input in [...Array(Number(numberInputs)).keys()]"
+                :key="input"
                 ref="inputRef"
                 class="input"
-                @mouseover="handleMouseOverInput(inputRef, input)"
-                @mouseleave="handleMouseLeaveInput(input)"
+                @mouseover="handleMouseOverInput(inputRef, input, id)"
+                @mouseleave="handleMouseLeaveInput(input, id)"
             ></div>
         </div>
-        <div class="outputsWrapper" v-for="output in outputs" :key="output.id">
+        <div class="outputsWrapper">
             <div
+                v-for="output in [...Array(Number(numberOutputs)).keys()]"
+                :key="output"
                 ref="outputRef"
                 class="output"
-                @mousedown="(event: any) => handleMouseDownOutput(outputRef, event, output)"
+                @mousedown="(event: any) => handleMouseDownOutput(outputRef, event, output, id)"
             ></div>
         </div>
     </div>
