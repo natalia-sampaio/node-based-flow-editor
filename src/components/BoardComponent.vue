@@ -124,6 +124,9 @@ function handleOnClickDelete() {
 
     //Delete node
     nodes.value = nodes.value.filter((node) => node.id !== selectedNode.value);
+
+    //Hide delete button
+    selectedNode.value = null;
 }
 
 function handleMouseDownNode(id: string, event: any) {
