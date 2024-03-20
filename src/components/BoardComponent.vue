@@ -289,6 +289,8 @@ interface Conector {
 const newConector = ref<Conector | null>(null);
 const conectors = ref<Conector[]>([]);
 
+const selectedConector = ref<string | null>(null);
+
 function handleMouseDownOutput(
     outputPositionX: number,
     outputPositionY: number,
@@ -360,6 +362,16 @@ function handleMouseLeaveInput(nodeId: string, inputIndex: number) {
     if (insideInput.value?.nodeId === nodeId && insideInput.value.inputIndex === inputIndex)
         insideInput.value = null;
 }
+
+function handleMouseDownConector(conectorId: string) {
+    //Clear any previously selected conector
+    selectedConector.value = null;
+
+    //Selected currently clicked conector
+    selectedConector.value = conectorId;
+}
+
+function handleDeleteConector(conectorId: string) {}
 </script>
 
 <template>
@@ -407,7 +419,7 @@ function handleMouseLeaveInput(nodeId: string, inputIndex: number) {
             </div>
             <div v-for="conector in conectors" :key="conector.id">
                 <ConectorComponent
-                    :selected="false"
+                    :selected="selectedConector === conector.id"
                     :isNew="false"
                     :position="{
                         x0: conector.currentStartPosition.x,
@@ -415,8 +427,8 @@ function handleMouseLeaveInput(nodeId: string, inputIndex: number) {
                         x1: conector.currentEndPosition.x,
                         y1: conector.currentEndPosition.y
                     }"
-                    @on-mouse-down-conector="() => {}"
-                    @on-click-delete="() => {}"
+                    @on-mouse-down-conector="handleMouseDownConector(conector.id)"
+                    @on-click-delete="handleDeleteConector(conector.id)"
                 />
             </div>
         </div>
