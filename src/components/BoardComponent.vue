@@ -10,6 +10,9 @@ const clickedPosition = ref({ x: -1, y: -1 });
 const selectedNode = ref<String | null>(null);
 
 function handleMouseDown(event: any) {
+    //Deselect node
+    selectedNode.value = null;
+
     //Start grabbing board
     grabbingBoard.value = true;
     clickedPosition.value.x = event.x;
@@ -31,12 +34,29 @@ function handleMouseMove(event: any) {
         const deltaX = event.x - clickedPosition.value.x;
         const deltaY = event.y - clickedPosition.value.y;
 
-        const boardWrapperElement = document.getElementById('boardWrapper');
+        if (selectedNode.value !== null) {
+            const deltaX = event.x - clickedPosition.value.x;
+            const deltaY = event.y - clickedPosition.value.y;
 
-        if (boardWrapperElement) {
-            boardWrapperElement.scrollBy(-deltaX, -deltaY);
-            clickedPosition.value.x = event.x;
-            clickedPosition.value.y = event.y;
+            const node = nodes.value.find((node) => node.id === selectedNode.value);
+
+            if (node) {
+                //Update node position
+                node.currentPosition = {
+                    x: (node.previousPosition.x + deltaX) / scale.value,
+                    y: (node.previousPosition.y + deltaY) / scale.value
+                };
+            }
+        }
+        //User clicked on board, move board
+        else {
+            const boardWrapperElement = document.getElementById('boardWrapper');
+
+            if (boardWrapperElement) {
+                boardWrapperElement.scrollBy(-deltaX, -deltaY);
+                clickedPosition.value.x = event.x;
+                clickedPosition.value.y = event.y;
+            }
         }
     }
 }
@@ -92,9 +112,36 @@ function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
     });
 }
 
-function handleOnClickDelete() {}
+function handleOnClickDelete() {
+    //Find node in global nodes array
+    const node = nodes.value.find((node) => node.id === selectedNode.value);
 
-function handleMouseDownNode() {}
+    //Check if node exists
+    if (!node) {
+        selectedNode.value = null;
+        return;
+    }
+
+    //Delete node
+    nodes.value = nodes.value.filter((node) => node.id !== selectedNode.value);
+}
+
+function handleMouseDownNode(id: string, event: any) {
+    //Select node
+    selectedNode.value = id;
+
+    //Update first click position
+    clickedPosition.value = { x: event.x, y: event.y };
+
+    const node = nodes.value.find((node) => node.id === selectedNode.value);
+    if (node) {
+        //Update node position
+        node.previousPosition = {
+            x: node.currentPosition.x * scale.value,
+            y: node.currentPosition.y * scale.value
+        };
+    }
+}
 
 function handleMouseDownOutput() {}
 
@@ -125,10 +172,10 @@ function handleMouseLeaveInput() {}
                     :numberInputs="node.inputs"
                     :numberOutputs="node.outputs"
                     :selected="selectedNode === node.id"
-                    :onMouseDownNode="handleMouseDownNode"
-                    :onMouseDownOutput="handleMouseDownOutput"
-                    :onMouseOverInput="handleMouseOverInput"
-                    :onMouseLeaveInput="handleMouseLeaveInput"
+                    @on-mouse-down-node="handleMouseDownNode"
+                    @on-mouse-down-output="handleMouseDownOutput"
+                    @on-mouse-over-input="handleMouseOverInput"
+                    @on-mouse-leave-input="handleMouseLeaveInput"
                 />
             </div>
         </div>

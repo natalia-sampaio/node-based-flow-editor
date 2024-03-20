@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-
 defineProps<{
     id: string;
     x: number;
@@ -31,11 +29,19 @@ const emit = defineEmits<{
 
 function handleMouseOverInput(ref: any, inputIndex: number, id: string) {
     const centerX =
-        ref.getBoundingClientRect().left +
-        Math.abs(ref.getBoundingClientRect().right - ref.getBoundingClientRect().left) / 2;
+        ref[inputIndex].getBoundingClientRect().left +
+        Math.abs(
+            ref[inputIndex].getBoundingClientRect().right -
+                ref[inputIndex].getBoundingClientRect().left
+        ) /
+            2;
     const centerY =
-        ref.getBoundingClientRect().top +
-        Math.abs(ref.getBoundingClientRect().bottom - ref.getBoundingClientRect().top) / 2;
+        ref[inputIndex].getBoundingClientRect().top +
+        Math.abs(
+            ref[inputIndex].getBoundingClientRect().bottom -
+                ref[inputIndex].getBoundingClientRect().top
+        ) /
+            2;
     emit('onMouseOverInput', centerX, centerY, id, inputIndex);
 }
 
@@ -44,19 +50,25 @@ function handleMouseLeaveInput(inputIndex: number, id: string) {
 }
 
 function handleMouseDownOutput(ref: any, event: any, outputIndex: number, id: string) {
-    event.stopPropagation();
-
     const centerX =
-        ref.getBoundingClientRect().left +
-        Math.abs(ref.getBoundingClientRect().right - ref.getBoundingClientRect().left) / 2;
+        ref[outputIndex].getBoundingClientRect().left +
+        Math.abs(
+            ref[outputIndex].getBoundingClientRect().right -
+                ref[outputIndex].getBoundingClientRect().left
+        ) /
+            2;
     const centerY =
-        ref.getBoundingClientRect().top +
-        Math.abs(ref.getBoundingClientRect().bottom - ref.getBoundingClientRect().top) / 2;
+        ref[outputIndex].getBoundingClientRect().top +
+        Math.abs(
+            ref[outputIndex].getBoundingClientRect().bottom -
+                ref[outputIndex].getBoundingClientRect().top
+        ) /
+            2;
     emit('onMouseOverInput', centerX, centerY, id, outputIndex);
 }
 
-const inputRef = ref<number>(0);
-const outputRef = ref<number>(0);
+const inputRef = null;
+const outputRef = null;
 </script>
 <template>
     <div
@@ -80,7 +92,9 @@ const outputRef = ref<number>(0);
                 :key="output"
                 ref="outputRef"
                 class="output"
-                @mousedown="(event: any) => handleMouseDownOutput(outputRef, event, output, id)"
+                @mousedown.stop="
+                    (event: any) => handleMouseDownOutput(outputRef, event, output, id)
+                "
             ></div>
         </div>
     </div>
