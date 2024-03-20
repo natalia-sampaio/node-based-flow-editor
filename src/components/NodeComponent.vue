@@ -64,7 +64,7 @@ function handleMouseDownOutput(ref: any, event: any, outputIndex: number, id: st
                 ref[outputIndex].getBoundingClientRect().top
         ) /
             2;
-    emit('onMouseOverInput', centerX, centerY, id, outputIndex);
+    emit('onMouseDownOutput', centerX, centerY, id, outputIndex);
 }
 
 const inputRef = null;

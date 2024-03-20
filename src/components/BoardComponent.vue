@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import type { Ref } from 'vue';
 import ControlButtons from './ControlButtons.vue';
 import NodeComponent from './NodeComponent.vue';
+import ConectorComponent from './ConectorComponent.vue';
 
 const grabbingBoard = ref(false);
 const scale = ref(1);
@@ -26,6 +27,11 @@ function handleMouseUp() {
 
     //Stop grabbing board
     grabbingBoard.value = false;
+
+    //Stop creating conector
+    if (newConector.value !== null) {
+        newConector.value = null;
+    }
 }
 
 function handleMouseMove(event: any) {
@@ -57,6 +63,18 @@ function handleMouseMove(event: any) {
                 clickedPosition.value.x = event.x;
                 clickedPosition.value.y = event.y;
             }
+        }
+    }
+
+    //User setting new conector
+    if (newConector.value !== null) {
+        const boardWrapperElement = document.getElementById('boardWrapper');
+
+        if (boardWrapperElement) {
+            newConector.value.currentEndPosition = {
+                x: (event.x + boardWrapperElement.scrollLeft) / scale.value,
+                y: (event.y + boardWrapperElement.scrollTop) / scale.value
+            };
         }
     }
 }
@@ -146,10 +164,74 @@ function handleMouseDownNode(id: string, event: any) {
     }
 }
 
-function handleMouseDownOutput() {}
+interface Edge {
+    id: string;
+    nodeStartId: string;
+    nodeEndId: string;
+    inputIndex: number;
+    outputIndex: number;
+    previousStartPosition: Ref<{ x: number; y: number }>;
+    currentStartPosition: Ref<{ x: number; y: number }>;
+    previousEndPosition: Ref<{ x: number; y: number }>;
+    currentEndPosition: Ref<{ x: number; y: number }>;
+}
 
-function handleMouseOverInput() {}
-function handleMouseLeaveInput() {}
+const newConector = ref<Edge | null>(null);
+
+function handleMouseDownOutput(
+    outputPositionX: number,
+    outputPositionY: number,
+    nodeId: string,
+    outputIndex: number
+) {
+    //Deselect node
+    selectedNode.value = null;
+
+    const boardWrapperElement = document.getElementById('boardWrapper');
+
+    if (boardWrapperElement) {
+        //Create conector positions with updated scale value
+        const previousConectorStart = {
+            x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
+            y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
+        };
+
+        const currentConectorStart = {
+            x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
+            y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
+        };
+
+        const previousConectorEnd = {
+            x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
+            y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
+        };
+
+        const currentConectorEnd = {
+            x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
+            y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
+        };
+
+        newConector.value = {
+            id: '',
+            nodeStartId: nodeId,
+            outputIndex: outputIndex,
+            nodeEndId: '',
+            inputIndex: -1,
+            previousStartPosition: previousConectorStart,
+            currentStartPosition: currentConectorStart,
+            previousEndPosition: previousConectorEnd,
+            currentEndPosition: currentConectorEnd
+        };
+    }
+}
+
+function handleMouseOverInput(
+    inputPositionX: number,
+    inputPositionY: number,
+    nodeId: string,
+    inputIndex: number
+) {}
+function handleMouseLeaveInput(nodeId: string, inputIndex: number) {}
 </script>
 
 <template>
@@ -179,6 +261,20 @@ function handleMouseLeaveInput() {}
                     @on-mouse-down-output="handleMouseDownOutput"
                     @on-mouse-over-input="handleMouseOverInput"
                     @on-mouse-leave-input="handleMouseLeaveInput"
+                />
+            </div>
+            <div v-if="newConector !== null">
+                <ConectorComponent
+                    :selected="false"
+                    :isNew="true"
+                    :position="{
+                        x0: newConector.currentStartPosition.x,
+                        y0: newConector.currentStartPosition.y,
+                        x1: newConector.currentEndPosition.x,
+                        y1: newConector.currentEndPosition.y
+                    }"
+                    @on-mouse-down-conector="() => {}"
+                    @on-click-delete="() => {}"
                 />
             </div>
         </div>
