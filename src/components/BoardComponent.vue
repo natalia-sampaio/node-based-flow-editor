@@ -28,9 +28,62 @@ function handleMouseUp() {
     //Stop grabbing board
     grabbingBoard.value = false;
 
-    //Stop creating conector
-    if (newConector.value !== null) {
+    //If a new conector is being set and cursor is not inside of an input, stop creating conector
+    if (newConector.value !== null && insideInput.value === null) {
         newConector.value = null;
+    }
+
+    //If a new conector is being set and cursor is inside an input, create conector and add it to the global array of conectors
+    if (newConector.value !== null && insideInput.value !== null) {
+        const nodeStartId = newConector.value.nodeStartId;
+        const nodeEndId = insideInput.value!.nodeId;
+
+        const nodeStart = nodes.value.find((node) => node.id === nodeStartId);
+        const nodeEnd = nodes.value.find((node) => node.id === nodeEndId);
+
+        const boardWrapperElement = document.getElementById('boardWrapper');
+
+        if (nodeStart && nodeEnd && boardWrapperElement) {
+            nodeStart.outputConectorIds = [
+                ...nodeStart.outputConectorIds,
+                `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`
+            ];
+            nodeEnd.inputConectorIds = [
+                ...nodeEnd.inputConectorIds,
+                `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`
+            ];
+
+            newConector!.value.previousStartPosition = {
+                x:
+                    (newConector!.value.currentStartPosition.x + boardWrapperElement.scrollLeft) /
+                    scale.value,
+                y:
+                    (newConector!.value.currentStartPosition.y + boardWrapperElement.scrollTop) /
+                    scale.value
+            };
+
+            newConector!.value.previousEndPosition = {
+                x: (insideInput!.value.positionX + boardWrapperElement.scrollLeft) / scale.value,
+                y: (insideInput!.value.positionY + boardWrapperElement.scrollTop) / scale.value
+            };
+
+            newConector!.value.currentEndPosition = {
+                x: (insideInput!.value.positionX + boardWrapperElement.scrollLeft) / scale.value,
+                y: (insideInput!.value.positionY + boardWrapperElement.scrollTop) / scale.value
+            };
+
+            //Add new conector
+            conectors.value = [
+                ...conectors.value,
+                {
+                    ...newConector.value!,
+                    id: `conector_${nodeStart.id}_${newConector.value.outputIndex}_${nodeEnd.id}_${insideInput.value.inputIndex}`,
+                    nodeEndId: nodeEnd.id,
+                    inputIndex: insideInput.value!.inputIndex
+                }
+            ];
+            newConector.value = null;
+        }
     }
 }
 
@@ -52,6 +105,31 @@ function handleMouseMove(event: any) {
                     x: (node.previousPosition.x + deltaX) / scale.value,
                     y: (node.previousPosition.y + deltaY) / scale.value
                 };
+
+                //Update input conectors positions
+                for (let i = 0; i < node.inputConectorIds.length; i++) {
+                    const conectorId = node.inputConectorIds[i];
+                    const conector = conectors.value.find((conector) => conector.id === conectorId);
+
+                    if (conector) {
+                        conector.currentEndPosition = {
+                            x: (conector.previousEndPosition.x + deltaX) / scale.value,
+                            y: (conector.previousEndPosition.y + deltaY) / scale.value
+                        };
+                    }
+                }
+
+                //Update output conectors positions
+                for (let i = 0; i < node.outputConectorIds.length; i++) {
+                    const conectorId = node.outputConectorIds[i];
+                    const conector = conectors.value.find((conector) => conector.id === conectorId);
+                    if (conector) {
+                        conector.currentStartPosition = {
+                            x: (conector.previousStartPosition.x + deltaX) / scale.value,
+                            y: (conector.previousStartPosition.y + deltaY) / scale.value
+                        };
+                    }
+                }
             }
         }
         //User clicked on board, move board
@@ -103,11 +181,13 @@ onMounted(() => {
 });
 
 interface Node {
-    id: Ref<string>;
-    inputs: Ref<number>;
-    outputs: Ref<number>;
+    id: string;
+    inputs: number;
+    outputs: number;
     previousPosition: Ref<{ x: number; y: number }>;
     currentPosition: Ref<{ x: number; y: number }>;
+    inputConectorIds: Ref<string[]>;
+    outputConectorIds: Ref<string[]>;
 }
 
 const nodes = ref<Node[]>([]);
@@ -121,12 +201,17 @@ function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
 
     const nodeId = `node_${Math.random().toString(36).substring(2, 8)}`;
 
+    const inputsConectorsIds = [''];
+    const outputsConectorsIds = [''];
+
     nodes.value.push({
         id: nodeId,
         inputs: numberInputs,
         outputs: numberOutputs,
         previousPosition: nodePrevious,
-        currentPosition: nodeCurrent
+        currentPosition: nodeCurrent,
+        inputConectorIds: inputsConectorsIds,
+        outputConectorIds: outputsConectorsIds
     });
 }
 
@@ -161,22 +246,48 @@ function handleMouseDownNode(id: string, event: any) {
             x: node.currentPosition.x * scale.value,
             y: node.currentPosition.y * scale.value
         };
+
+        //Update input conectors positions
+        for (let i = 0; i < node.inputConectorIds.length; i++) {
+            const conectorId = node.inputConectorIds[i];
+            const conector = conectors.value.find((conector) => conector.id === conectorId);
+
+            if (conector) {
+                conector.previousEndPosition = {
+                    x: conector.currentEndPosition.x * scale.value,
+                    y: conector.currentEndPosition.y * scale.value
+                };
+            }
+        }
+
+        //Update output conectors positions
+        for (let i = 0; i < node.inputConectorIds.length; i++) {
+            const conectorId = node.outputConectorIds[i];
+            const conector = conectors.value.find((conector) => conector.id === conectorId);
+            if (conector) {
+                conector.previousStartPosition = {
+                    x: conector.currentStartPosition.x * scale.value,
+                    y: conector.currentStartPosition.y * scale.value
+                };
+            }
+        }
     }
 }
 
-interface Edge {
+interface Conector {
     id: string;
-    nodeStartId: string;
-    nodeEndId: string;
-    inputIndex: number;
-    outputIndex: number;
+    nodeStartId: Ref<string>;
+    nodeEndId: Ref<string>;
+    inputIndex: Ref<number>;
+    outputIndex: Ref<number>;
     previousStartPosition: Ref<{ x: number; y: number }>;
     currentStartPosition: Ref<{ x: number; y: number }>;
     previousEndPosition: Ref<{ x: number; y: number }>;
     currentEndPosition: Ref<{ x: number; y: number }>;
 }
 
-const newConector = ref<Edge | null>(null);
+const newConector = ref<Conector | null>(null);
+const conectors = ref<Conector[]>([]);
 
 function handleMouseDownOutput(
     outputPositionX: number,
@@ -225,13 +336,30 @@ function handleMouseDownOutput(
     }
 }
 
+const insideInput = ref<{
+    nodeId: string;
+    inputIndex: number;
+    positionX: number;
+    positionY: number;
+} | null>(null);
+
 function handleMouseOverInput(
     inputPositionX: number,
     inputPositionY: number,
     nodeId: string,
     inputIndex: number
-) {}
-function handleMouseLeaveInput(nodeId: string, inputIndex: number) {}
+) {
+    insideInput.value = {
+        nodeId: nodeId,
+        inputIndex: inputIndex,
+        positionX: inputPositionX,
+        positionY: inputPositionY
+    };
+}
+function handleMouseLeaveInput(nodeId: string, inputIndex: number) {
+    if (insideInput.value?.nodeId === nodeId && insideInput.value.inputIndex === inputIndex)
+        insideInput.value = null;
+}
 </script>
 
 <template>
@@ -272,6 +400,20 @@ function handleMouseLeaveInput(nodeId: string, inputIndex: number) {}
                         y0: newConector.currentStartPosition.y,
                         x1: newConector.currentEndPosition.x,
                         y1: newConector.currentEndPosition.y
+                    }"
+                    @on-mouse-down-conector="() => {}"
+                    @on-click-delete="() => {}"
+                />
+            </div>
+            <div v-for="conector in conectors" :key="conector.id">
+                <ConectorComponent
+                    :selected="false"
+                    :isNew="false"
+                    :position="{
+                        x0: conector.currentStartPosition.x,
+                        y0: conector.currentStartPosition.y,
+                        x1: conector.currentEndPosition.x,
+                        y1: conector.currentEndPosition.y
                     }"
                     @on-mouse-down-conector="() => {}"
                     @on-click-delete="() => {}"
