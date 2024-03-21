@@ -33,7 +33,7 @@ function translateDeleteButton(
 
 //Give the conector an offset to avoid conector overlap
 function calculateOffset(value: number): number {
-    return value * 2;
+    return value / 2;
 }
 </script>
 
