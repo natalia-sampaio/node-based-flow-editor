@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 defineProps<{
     id: string;
     x: number;
@@ -67,8 +69,8 @@ function handleMouseDownOutput(ref: any, event: any, outputIndex: number, id: st
     emit('onMouseDownOutput', centerX, centerY, id, outputIndex);
 }
 
-const inputRef = null;
-const outputRef = null;
+const inputRef = ref(null);
+const outputRef = ref(null);
 </script>
 <template>
     <div
