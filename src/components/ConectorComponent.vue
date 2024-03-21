@@ -11,22 +11,37 @@ const emit = defineEmits<{
     (e: 'onMouseDownConector'): void;
     (e: 'onClickDelete'): void;
 }>();
+
+function drawConector(x0: number, y0: number, x1: number, y1: number) {
+    return `M ${x0} ${y0} C ${x0 + Math.abs(x1 - x0)} ${y0}, ${x1 - Math.abs(x1 - x0)} ${y1}, ${x1} ${y1}`;
+}
+
+function translateDeleteButton(x0: number, y0: number, x1: number, y1: number, selected: boolean) {
+    const middlePoint = {
+        x: x0 + (x1 - x0) / 2,
+        y: y0 + (y1 - y0) / 2
+    };
+
+    return `translate(${middlePoint.x}, ${middlePoint.y - (selected ? 24 : 0)})`;
+}
 </script>
 
 <template>
     <svg class="wrapper">
         <path
             :class="isNew ? 'conectorNew' : selected ? 'conectorSelected' : 'conector'"
-            :d="`M ${position.x0} ${position.y0} C ${position.x0 + Math.abs(position.x1 - position.x0)} ${position.y0}, ${position.x1 - Math.abs(position.x1 - position.x0)} ${position.y1}, ${position.x1} ${position.y1}`"
+            :d="drawConector(position.x0, position.y0, position.x1, position.y1)"
             @mousedown.stop="emit('onMouseDownConector')"
         />
         <g
             :class="selected ? 'delete' : 'deleteHidden'"
-            :transform="`translate(${position.x0 + (position.x1 - position.x0) / 2}, ${position.y0 + (position.y1 - position.y0) / 2 - (selected ? 24 : 0)})`"
+            :transform="
+                translateDeleteButton(position.x0, position.y0, position.x1, position.y1, selected)
+            "
             @mousedown.stop="emit('onClickDelete')"
         >
             <circle cx="0" cy="0" r="14" class="circle" />
-            <IconTrash class="icon" />
+            <IconTrash width="26px" height="20px" transform="translate(-13,-10)" />
         </g>
     </svg>
 </template>

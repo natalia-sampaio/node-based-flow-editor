@@ -14,6 +14,9 @@ function handleMouseDown(event: any) {
     //Deselect node
     selectedNode.value = null;
 
+    //Deselect conector
+    selectedConector.value = null;
+
     //Start grabbing board
     grabbingBoard.value = true;
     clickedPosition.value.x = event.x;
@@ -233,6 +236,9 @@ function handleOnClickDelete() {
 }
 
 function handleMouseDownNode(id: string, event: any) {
+    //Deselect conector
+    selectedConector.value = null;
+
     //Select node
     selectedNode.value = id;
 
@@ -367,11 +373,37 @@ function handleMouseDownConector(conectorId: string) {
     //Clear any previously selected conector
     selectedConector.value = null;
 
-    //Selected currently clicked conector
+    //Clear any previously selected node
+    selectedNode.value = null;
+
+    //Select currently clicked conector
     selectedConector.value = conectorId;
 }
 
-function handleDeleteConector(conectorId: string) {}
+function handleDeleteConector(conectorId: string) {
+    const conector = conectors.value.find((c) => c.id === conectorId);
+
+    if (conector) {
+        //Delete conector from start node
+        const nodeStart = nodes.value.find((n) => n.id === conector.nodeStartId);
+        if (nodeStart) {
+            nodeStart.outputConectorIds = [
+                ...nodeStart.outputConectorIds.filter((conectorId) => conectorId !== conector.id)
+            ];
+        }
+
+        //Delete conector from end node
+        const nodeEnd = nodes.value.find((n) => n.id === conector.nodeEndId);
+        if (nodeEnd) {
+            nodeEnd.inputConectorIds = [
+                ...nodeEnd.inputConectorIds.filter((conectorId) => conectorId === conector.id)
+            ];
+        }
+
+        //Delete conector from global conectors array
+        conectors.value = [...conectors.value.filter((e) => e.id !== conector.id)];
+    }
+}
 </script>
 
 <template>
@@ -417,7 +449,7 @@ function handleDeleteConector(conectorId: string) {}
                     @on-click-delete="() => {}"
                 />
             </div>
-            <div v-for="conector in conectors" :key="conector.id">
+            <div v-for="conector in conectors || []" :key="conector.id">
                 <ConectorComponent
                     :selected="selectedConector === conector.id"
                     :isNew="false"

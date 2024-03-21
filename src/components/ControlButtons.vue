@@ -48,10 +48,10 @@ function handleChangeNumberOutputs(event: any) {
                 :class="showDelete ? 'buttonDelete' : 'buttonDeleteHidden'"
                 @click="$emit('onClickDelete')"
             >
-                <IconTrash class="buttonIcon" />
+                <IconTrash />
             </button>
             <button class="buttonAdd" @click.stop="handleOnClickAdd">
-                <IconAdd class="buttonIcon" />
+                <IconAdd />
             </button>
             <div :class="isOpen ? 'dropdown' : 'dropdownHidden'">
                 <label class="label">Number of inputs</label>
@@ -89,7 +89,7 @@ function handleChangeNumberOutputs(event: any) {
     box-sizing: border-box;
 }
 
-.buttonIcon {
+.icon {
     width: 24px;
 }
 
