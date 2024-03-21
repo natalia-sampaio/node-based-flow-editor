@@ -47,14 +47,19 @@ function handleMouseUp() {
         const boardWrapperElement = document.getElementById('boardWrapper');
 
         if (nodeStart && nodeEnd && boardWrapperElement) {
-            nodeStart.outputConectorIds = [
-                ...nodeStart.outputConectorIds,
-                `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`
-            ];
-            nodeEnd.inputConectorIds = [
-                ...nodeEnd.inputConectorIds,
-                `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`
-            ];
+            const conectorId = `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`;
+
+            //Prevent creation of two identical conectors
+            if (
+                nodeStart.outputConectorIds.includes(conectorId) &&
+                nodeEnd.inputConectorIds.includes(conectorId)
+            ) {
+                newConector.value = null;
+                return;
+            }
+
+            nodeStart.outputConectorIds = [...nodeStart.outputConectorIds, conectorId];
+            nodeEnd.inputConectorIds = [...nodeEnd.inputConectorIds, conectorId];
 
             newConector!.value.previousStartPosition = {
                 x:
@@ -80,7 +85,7 @@ function handleMouseUp() {
                 ...conectors.value,
                 {
                     ...newConector.value!,
-                    id: `conector_${nodeStart.id}_${newConector.value.outputIndex}_${nodeEnd.id}_${insideInput.value.inputIndex}`,
+                    id: conectorId,
                     nodeEndId: nodeEnd.id,
                     inputIndex: insideInput.value!.inputIndex
                 }

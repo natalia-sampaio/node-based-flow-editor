@@ -12,17 +12,28 @@ const emit = defineEmits<{
     (e: 'onClickDelete'): void;
 }>();
 
-function drawConector(x0: number, y0: number, x1: number, y1: number) {
-    return `M ${x0} ${y0} C ${x0 + Math.abs(x1 - x0)} ${y0}, ${x1 - Math.abs(x1 - x0)} ${y1}, ${x1} ${y1}`;
+function drawConector(x0: number, y0: number, x1: number, y1: number): string {
+    return `M ${x0} ${y0} C ${x0 + calculateOffset(Math.abs(x1 - x0))} ${y0}, ${x1 - calculateOffset(Math.abs(x1 - x0))} ${y1}, ${x1} ${y1}`;
 }
 
-function translateDeleteButton(x0: number, y0: number, x1: number, y1: number, selected: boolean) {
+function translateDeleteButton(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    selected: boolean
+): string {
     const middlePoint = {
         x: x0 + (x1 - x0) / 2,
         y: y0 + (y1 - y0) / 2
     };
 
     return `translate(${middlePoint.x}, ${middlePoint.y - (selected ? 24 : 0)})`;
+}
+
+//Give the conector an offset to avoid conector overlap
+function calculateOffset(value: number): number {
+    return value * 2;
 }
 </script>
 
