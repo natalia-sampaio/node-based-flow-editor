@@ -422,11 +422,8 @@ function handleDeleteConector(conectorId: string) {
         <div
             id="board"
             @mousedown="handleMouseDown"
-            @touchstart="handleMouseDown"
             @mouseup="handleMouseUp"
-            @touchend="handleMouseUp"
             @mousemove="handleMouseMove"
-            @touchmove="handleMouseMove"
             :class="grabbingBoard ? 'boardDragging' : 'board'"
         >
             <div v-for="node in nodes" :key="node.id">
