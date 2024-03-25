@@ -8,11 +8,11 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (e: 'onMouseDownConector'): void;
+    (e: 'onMouseDownConnector'): void;
     (e: 'onClickDelete'): void;
 }>();
 
-function drawConector(x0: number, y0: number, x1: number, y1: number): string {
+function drawConnector(x0: number, y0: number, x1: number, y1: number): string {
     return `M ${x0} ${y0} C ${x0 + calculateOffset(Math.abs(x1 - x0))} ${y0}, ${x1 - calculateOffset(Math.abs(x1 - x0))} ${y1}, ${x1} ${y1}`;
 }
 
@@ -31,7 +31,7 @@ function translateDeleteButton(
     return `translate(${middlePoint.x}, ${middlePoint.y - (selected ? 24 : 0)})`;
 }
 
-//Give the conector an offset to avoid conector overlap
+//Give the connector an offset to avoid connector overlap
 function calculateOffset(value: number): number {
     return value / 2;
 }
@@ -40,9 +40,9 @@ function calculateOffset(value: number): number {
 <template>
     <svg class="wrapper">
         <path
-            :class="isNew ? 'conectorNew' : selected ? 'conectorSelected' : 'conector'"
-            :d="drawConector(position.x0, position.y0, position.x1, position.y1)"
-            @mousedown.stop="emit('onMouseDownConector')"
+            :class="isNew ? 'connectorNew' : selected ? 'connectorSelected' : 'connector'"
+            :d="drawConnector(position.x0, position.y0, position.x1, position.y1)"
+            @mousedown.stop="emit('onMouseDownConnector')"
         />
         <g
             :class="selected ? 'delete' : 'deleteHidden'"
@@ -66,7 +66,7 @@ function calculateOffset(value: number): number {
     pointer-events: none;
 }
 
-.conector {
+.connector {
     pointer-events: all;
     stroke: rgba(168, 168, 168, 0.8);
     stroke-width: 2;
@@ -74,7 +74,7 @@ function calculateOffset(value: number): number {
     cursor: pointer;
 }
 
-.conectorSelected {
+.connectorSelected {
     pointer-events: all;
     stroke: rgb(216, 141, 62);
     stroke-width: 3;
@@ -82,7 +82,7 @@ function calculateOffset(value: number): number {
     z-index: 100;
 }
 
-.conectorNew {
+.connectorNew {
     stroke: rgba(168, 168, 168, 0.4);
     stroke-width: 2;
     fill: transparent;

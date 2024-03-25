@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue';
 import type { Ref } from 'vue';
 import ControlButtons from './ControlButtons.vue';
 import NodeComponent from './NodeComponent.vue';
-import ConectorComponent from './ConectorComponent.vue';
+import ConnectorComponent from './ConnectorComponent.vue';
 
 const grabbingBoard = ref(false);
 const scale = ref(1);
@@ -14,8 +14,8 @@ function handleMouseDown(event: any) {
     //Deselect node
     selectedNode.value = null;
 
-    //Deselect conector
-    selectedConector.value = null;
+    //Deselect connector
+    selectedConnector.value = null;
 
     //Start grabbing board
     grabbingBoard.value = true;
@@ -31,14 +31,14 @@ function handleMouseUp() {
     //Stop grabbing board
     grabbingBoard.value = false;
 
-    //If a new conector is being set and cursor is not inside of an input, stop creating conector
-    if (newConector.value !== null && insideInput.value === null) {
-        newConector.value = null;
+    //If a new connector is being set and cursor is not inside of an input, stop creating connector
+    if (newConnector.value !== null && insideInput.value === null) {
+        newConnector.value = null;
     }
 
-    //If a new conector is being set and cursor is inside an input, create conector and add it to the global array of conectors
-    if (newConector.value !== null && insideInput.value !== null) {
-        const nodeStartId = newConector.value.nodeStartId;
+    //If a new connector is being set and cursor is inside an input, create connector and add it to the global array of connectors
+    if (newConnector.value !== null && insideInput.value !== null) {
+        const nodeStartId = newConnector.value.nodeStartId;
         const nodeEndId = insideInput.value!.nodeId;
 
         const nodeStart = nodes.value.find((node) => node.id === nodeStartId);
@@ -47,50 +47,50 @@ function handleMouseUp() {
         const boardWrapperElement = document.getElementById('boardWrapper');
 
         if (nodeStart && nodeEnd && boardWrapperElement) {
-            const conectorId = `conector_${nodeStart.id}_${newConector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`;
+            const connectorId = `connector_${nodeStart.id}_${newConnector?.value.outputIndex}_${nodeEnd.id}_${insideInput?.value.inputIndex}`;
 
-            //Prevent creation of two identical conectors
+            //Prevent creation of two identical connectors
             if (
-                nodeStart.outputConectorIds.includes(conectorId) &&
-                nodeEnd.inputConectorIds.includes(conectorId)
+                nodeStart.outputConnectorIds.includes(connectorId) &&
+                nodeEnd.inputConnectorIds.includes(connectorId)
             ) {
-                newConector.value = null;
+                newConnector.value = null;
                 return;
             }
 
-            nodeStart.outputConectorIds = [...nodeStart.outputConectorIds, conectorId];
-            nodeEnd.inputConectorIds = [...nodeEnd.inputConectorIds, conectorId];
+            nodeStart.outputConnectorIds = [...nodeStart.outputConnectorIds, connectorId];
+            nodeEnd.inputConnectorIds = [...nodeEnd.inputConnectorIds, connectorId];
 
-            newConector!.value.previousStartPosition = {
+            newConnector!.value.previousStartPosition = {
                 x:
-                    (newConector!.value.currentStartPosition.x + boardWrapperElement.scrollLeft) /
+                    (newConnector!.value.currentStartPosition.x + boardWrapperElement.scrollLeft) /
                     scale.value,
                 y:
-                    (newConector!.value.currentStartPosition.y + boardWrapperElement.scrollTop) /
+                    (newConnector!.value.currentStartPosition.y + boardWrapperElement.scrollTop) /
                     scale.value
             };
 
-            newConector!.value.previousEndPosition = {
+            newConnector!.value.previousEndPosition = {
                 x: (insideInput!.value.positionX + boardWrapperElement.scrollLeft) / scale.value,
                 y: (insideInput!.value.positionY + boardWrapperElement.scrollTop) / scale.value
             };
 
-            newConector!.value.currentEndPosition = {
+            newConnector!.value.currentEndPosition = {
                 x: (insideInput!.value.positionX + boardWrapperElement.scrollLeft) / scale.value,
                 y: (insideInput!.value.positionY + boardWrapperElement.scrollTop) / scale.value
             };
 
-            //Add new conector
-            conectors.value = [
-                ...conectors.value,
+            //Add new connector
+            connectors.value = [
+                ...connectors.value,
                 {
-                    ...newConector.value!,
-                    id: conectorId,
+                    ...newConnector.value!,
+                    id: connectorId,
                     nodeEndId: nodeEnd.id,
                     inputIndex: insideInput.value!.inputIndex
                 }
             ];
-            newConector.value = null;
+            newConnector.value = null;
         }
     }
 }
@@ -114,27 +114,31 @@ function handleMouseMove(event: any) {
                     y: (node.previousPosition.y + deltaY) / scale.value
                 };
 
-                //Update input conectors positions
-                for (let i = 0; i < node.inputConectorIds.length; i++) {
-                    const conectorId = node.inputConectorIds[i];
-                    const conector = conectors.value.find((conector) => conector.id === conectorId);
+                //Update input connectors positions
+                for (let i = 0; i < node.inputConnectorIds.length; i++) {
+                    const connectorId = node.inputConnectorIds[i];
+                    const connector = connectors.value.find(
+                        (connector) => connector.id === connectorId
+                    );
 
-                    if (conector) {
-                        conector.currentEndPosition = {
-                            x: (conector.previousEndPosition.x + deltaX) / scale.value,
-                            y: (conector.previousEndPosition.y + deltaY) / scale.value
+                    if (connector) {
+                        connector.currentEndPosition = {
+                            x: (connector.previousEndPosition.x + deltaX) / scale.value,
+                            y: (connector.previousEndPosition.y + deltaY) / scale.value
                         };
                     }
                 }
 
-                //Update output conectors positions
-                for (let i = 0; i < node.outputConectorIds.length; i++) {
-                    const conectorId = node.outputConectorIds[i];
-                    const conector = conectors.value.find((conector) => conector.id === conectorId);
-                    if (conector) {
-                        conector.currentStartPosition = {
-                            x: (conector.previousStartPosition.x + deltaX) / scale.value,
-                            y: (conector.previousStartPosition.y + deltaY) / scale.value
+                //Update output connectors positions
+                for (let i = 0; i < node.outputConnectorIds.length; i++) {
+                    const connectorId = node.outputConnectorIds[i];
+                    const connector = connectors.value.find(
+                        (connector) => connector.id === connectorId
+                    );
+                    if (connector) {
+                        connector.currentStartPosition = {
+                            x: (connector.previousStartPosition.x + deltaX) / scale.value,
+                            y: (connector.previousStartPosition.y + deltaY) / scale.value
                         };
                     }
                 }
@@ -152,12 +156,12 @@ function handleMouseMove(event: any) {
         }
     }
 
-    //User setting new conector
-    if (newConector.value !== null) {
+    //User setting new connector
+    if (newConnector.value !== null) {
         const boardWrapperElement = document.getElementById('boardWrapper');
 
         if (boardWrapperElement) {
-            newConector.value.currentEndPosition = {
+            newConnector.value.currentEndPosition = {
                 x: (event.x + boardWrapperElement.scrollLeft) / scale.value,
                 y: (event.y + boardWrapperElement.scrollTop) / scale.value
             };
@@ -194,8 +198,8 @@ interface Node {
     outputs: number;
     previousPosition: Ref<{ x: number; y: number }>;
     currentPosition: Ref<{ x: number; y: number }>;
-    inputConectorIds: Ref<string[]>;
-    outputConectorIds: Ref<string[]>;
+    inputConnectorIds: Ref<string[]>;
+    outputConnectorIds: Ref<string[]>;
 }
 
 const nodes = ref<Node[]>([]);
@@ -209,8 +213,8 @@ function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
 
     const nodeId = `node_${Math.random().toString(36).substring(2, 8)}`;
 
-    const inputsConectorsIds = [''];
-    const outputsConectorsIds = [''];
+    const inputsConnectorsIds = [''];
+    const outputsConnectorsIds = [''];
 
     nodes.value.push({
         id: nodeId,
@@ -218,8 +222,8 @@ function handleOnClickAdd(numberInputs: number, numberOutputs: number) {
         outputs: numberOutputs,
         previousPosition: nodePrevious,
         currentPosition: nodeCurrent,
-        inputConectorIds: inputsConectorsIds,
-        outputConectorIds: outputsConectorsIds
+        inputConnectorIds: inputsConnectorsIds,
+        outputConnectorIds: outputsConnectorsIds
     });
 }
 
@@ -241,8 +245,8 @@ function handleOnClickDelete() {
 }
 
 function handleMouseDownNode(id: string, event: any) {
-    //Deselect conector
-    selectedConector.value = null;
+    //Deselect connector
+    selectedConnector.value = null;
 
     //Select node
     selectedNode.value = id;
@@ -258,34 +262,34 @@ function handleMouseDownNode(id: string, event: any) {
             y: node.currentPosition.y * scale.value
         };
 
-        //Update input conectors positions
-        for (let i = 0; i < node.inputConectorIds.length; i++) {
-            const conectorId = node.inputConectorIds[i];
-            const conector = conectors.value.find((conector) => conector.id === conectorId);
+        //Update input connectors positions
+        for (let i = 0; i < node.inputConnectorIds.length; i++) {
+            const connectorId = node.inputConnectorIds[i];
+            const connector = connectors.value.find((connector) => connector.id === connectorId);
 
-            if (conector) {
-                conector.previousEndPosition = {
-                    x: conector.currentEndPosition.x * scale.value,
-                    y: conector.currentEndPosition.y * scale.value
+            if (connector) {
+                connector.previousEndPosition = {
+                    x: connector.currentEndPosition.x * scale.value,
+                    y: connector.currentEndPosition.y * scale.value
                 };
             }
         }
 
-        //Update output conectors positions
-        for (let i = 0; i < node.inputConectorIds.length; i++) {
-            const conectorId = node.outputConectorIds[i];
-            const conector = conectors.value.find((conector) => conector.id === conectorId);
-            if (conector) {
-                conector.previousStartPosition = {
-                    x: conector.currentStartPosition.x * scale.value,
-                    y: conector.currentStartPosition.y * scale.value
+        //Update output connectors positions
+        for (let i = 0; i < node.inputConnectorIds.length; i++) {
+            const connectorId = node.outputConnectorIds[i];
+            const connector = connectors.value.find((connector) => connector.id === connectorId);
+            if (connector) {
+                connector.previousStartPosition = {
+                    x: connector.currentStartPosition.x * scale.value,
+                    y: connector.currentStartPosition.y * scale.value
                 };
             }
         }
     }
 }
 
-interface Conector {
+interface Connector {
     id: string;
     nodeStartId: Ref<string>;
     nodeEndId: Ref<string>;
@@ -297,10 +301,10 @@ interface Conector {
     currentEndPosition: Ref<{ x: number; y: number }>;
 }
 
-const newConector = ref<Conector | null>(null);
-const conectors = ref<Conector[]>([]);
+const newConnector = ref<Connector | null>(null);
+const connectors = ref<Connector[]>([]);
 
-const selectedConector = ref<string | null>(null);
+const selectedConnector = ref<string | null>(null);
 
 function handleMouseDownOutput(
     outputPositionX: number,
@@ -314,37 +318,37 @@ function handleMouseDownOutput(
     const boardWrapperElement = document.getElementById('boardWrapper');
 
     if (boardWrapperElement) {
-        //Create conector positions with updated scale value
-        const previousConectorStart = {
+        //Create connector positions with updated scale value
+        const previousConnectorStart = {
             x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
             y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
         };
 
-        const currentConectorStart = {
+        const currentConnectorStart = {
             x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
             y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
         };
 
-        const previousConectorEnd = {
+        const previousConnectorEnd = {
             x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
             y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
         };
 
-        const currentConectorEnd = {
+        const currentConnectorEnd = {
             x: (outputPositionX + boardWrapperElement.scrollLeft) / scale.value,
             y: (outputPositionY + boardWrapperElement.scrollTop) / scale.value
         };
 
-        newConector.value = {
+        newConnector.value = {
             id: '',
             nodeStartId: nodeId,
             outputIndex: outputIndex,
             nodeEndId: '',
             inputIndex: -1,
-            previousStartPosition: previousConectorStart,
-            currentStartPosition: currentConectorStart,
-            previousEndPosition: previousConectorEnd,
-            currentEndPosition: currentConectorEnd
+            previousStartPosition: previousConnectorStart,
+            currentStartPosition: currentConnectorStart,
+            previousEndPosition: previousConnectorEnd,
+            currentEndPosition: currentConnectorEnd
         };
     }
 }
@@ -374,39 +378,41 @@ function handleMouseLeaveInput(nodeId: string, inputIndex: number) {
         insideInput.value = null;
 }
 
-function handleMouseDownConector(conectorId: string) {
-    //Clear any previously selected conector
-    selectedConector.value = null;
+function handleMouseDownConnector(connectorId: string) {
+    //Clear any previously selected connector
+    selectedConnector.value = null;
 
     //Clear any previously selected node
     selectedNode.value = null;
 
-    //Select currently clicked conector
-    selectedConector.value = conectorId;
+    //Select currently clicked connector
+    selectedConnector.value = connectorId;
 }
 
-function handleDeleteConector(conectorId: string) {
-    const conector = conectors.value.find((c) => c.id === conectorId);
+function handleDeleteConnector(connectorId: string) {
+    const connector = connectors.value.find((c) => c.id === connectorId);
 
-    if (conector) {
-        //Delete conector from start node
-        const nodeStart = nodes.value.find((n) => n.id === conector.nodeStartId);
+    if (connector) {
+        //Delete connector from start node
+        const nodeStart = nodes.value.find((n) => n.id === connector.nodeStartId);
         if (nodeStart) {
-            nodeStart.outputConectorIds = [
-                ...nodeStart.outputConectorIds.filter((conectorId) => conectorId !== conector.id)
+            nodeStart.outputConnectorIds = [
+                ...nodeStart.outputConnectorIds.filter(
+                    (connectorId) => connectorId !== connector.id
+                )
             ];
         }
 
-        //Delete conector from end node
-        const nodeEnd = nodes.value.find((n) => n.id === conector.nodeEndId);
+        //Delete connector from end node
+        const nodeEnd = nodes.value.find((n) => n.id === connector.nodeEndId);
         if (nodeEnd) {
-            nodeEnd.inputConectorIds = [
-                ...nodeEnd.inputConectorIds.filter((conectorId) => conectorId === conector.id)
+            nodeEnd.inputConnectorIds = [
+                ...nodeEnd.inputConnectorIds.filter((connectorId) => connectorId === connector.id)
             ];
         }
 
-        //Delete conector from global conectors array
-        conectors.value = [...conectors.value.filter((e) => e.id !== conector.id)];
+        //Delete connector from global connectors array
+        connectors.value = [...connectors.value.filter((e) => e.id !== connector.id)];
     }
 }
 </script>
@@ -440,32 +446,32 @@ function handleDeleteConector(conectorId: string) {
                     @on-mouse-leave-input="handleMouseLeaveInput"
                 />
             </div>
-            <div v-if="newConector !== null">
-                <ConectorComponent
+            <div v-if="newConnector !== null">
+                <ConnectorComponent
                     :selected="false"
                     :isNew="true"
                     :position="{
-                        x0: newConector.currentStartPosition.x,
-                        y0: newConector.currentStartPosition.y,
-                        x1: newConector.currentEndPosition.x,
-                        y1: newConector.currentEndPosition.y
+                        x0: newConnector.currentStartPosition.x,
+                        y0: newConnector.currentStartPosition.y,
+                        x1: newConnector.currentEndPosition.x,
+                        y1: newConnector.currentEndPosition.y
                     }"
-                    @on-mouse-down-conector="() => {}"
+                    @on-mouse-down-connector="() => {}"
                     @on-click-delete="() => {}"
                 />
             </div>
-            <div v-for="conector in conectors || []" :key="conector.id">
-                <ConectorComponent
-                    :selected="selectedConector === conector.id"
+            <div v-for="connector in connectors || []" :key="connector.id">
+                <ConnectorComponent
+                    :selected="selectedConnector === connector.id"
                     :isNew="false"
                     :position="{
-                        x0: conector.currentStartPosition.x,
-                        y0: conector.currentStartPosition.y,
-                        x1: conector.currentEndPosition.x,
-                        y1: conector.currentEndPosition.y
+                        x0: connector.currentStartPosition.x,
+                        y0: connector.currentStartPosition.y,
+                        x1: connector.currentEndPosition.x,
+                        y1: connector.currentEndPosition.y
                     }"
-                    @on-mouse-down-conector="handleMouseDownConector(conector.id)"
-                    @on-click-delete="handleDeleteConector(conector.id)"
+                    @on-mouse-down-connector="handleMouseDownConnector(connector.id)"
+                    @on-click-delete="handleDeleteConnector(connector.id)"
                 />
             </div>
         </div>
